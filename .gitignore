@@ -1,0 +1,7 @@
+.env/
+Anaconda2/
+
+*.pyc
+*.xlsx
+*.txt
+!requirements.txt
