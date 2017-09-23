@@ -9,4 +9,4 @@
 def read_data(path):
     """Read data"""
     with open(path) as f:
-        return [[float(word) for word in line.split()] for line in f.readlines()]
+        return [[float(word) for word in line.split()] for line in f.readlines() if line != '\n']
