@@ -1,4 +1,4 @@
-#!/usr/bin/python
+﻿#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 """
@@ -18,10 +18,11 @@ def row_diff(row):
 
 def main():
     """Entrypoint"""
-    data = mat(read_data('input.super.txt'))
+    raw = mat(read_data('input.super.txt'))
     count, diff = 0, 1
-    while count < 100 and diff > e ** -10:
-        new = data * data
+    data = raw
+    while count < 100 and diff > 0.5 * (10 ** -4):
+        new = data * raw
         count += 1
         diff = max([row_diff([col for col in row if col != 0])
                     for row in new.tolist()])  # pylint: disable=E1101
