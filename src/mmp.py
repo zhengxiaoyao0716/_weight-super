@@ -4,6 +4,7 @@
 计算mmp问题
 """
 
+from functools import reduce
 from numpy import mat, ones
 from openopt.oo import MMP
 
@@ -35,9 +36,46 @@ def gen_xi(n):
         r = l
 
 
+def adjust_kb(kbs, n):
+    """adjust kb"""
+    # change = lambda a, b: a * b / (a * b + (1 - a) * (1 - b))
+    # i = 0
+    # for ln in range(n - 1, 0, -1):
+    #     for li in range(1, ln):
+    #         k, b = kbs[i + ln]
+    #         if k != b:
+    #             kbs[i + ln] = ()
+    #     i += ln
+    change = lambda *i: reduce(lambda l, r: l * r, i) ** (float(2) / len(i)) / (
+        reduce(lambda l, r: l * r, i) ** (float(2) / len(i)) +
+        reduce(lambda l, r: (1 - l) * (1 - r), i) ** (float(2) / len(i))
+    )
+
+    def _fn3():
+        if kbs[1][0] != kbs[1][1] or kbs[4][0] != kbs[4][1]:
+            kbs[1] = [change(kbs[0][0], kbs[2][0])] * 2
+            kbs[4] = [change(kbs[3][0], kbs[5][0])] * 2
+
+    def _fn4():
+        if kbs[4][0] != kbs[4][1] or kbs[10][0] != kbs[10][1]:
+            kbs[4] = [change(kbs[3][0], kbs[5][0])] * 2
+            kbs[10] = [change(kbs[9][0], kbs[11][0])] * 2
+        if kbs[2][0] != kbs[2][1] or kbs[8][0] != kbs[8][1]:
+            kbs[2] = [change(kbs[0][0], kbs[3][0], kbs[4][0], kbs[5][0])] * 2
+            kbs[8] = [change(kbs[6][0], kbs[9][0], kbs[10][0], kbs[11][0])] * 2
+        if kbs[1][0] != kbs[1][1] or kbs[7][0] != kbs[7][1]:
+            kbs[1] = [change(kbs[0][0], kbs[2][0])] * 2
+            kbs[7] = [change(kbs[6][0], kbs[8][0])] * 2
+    [None, None, None, _fn3, _fn4, None, ][n]()
+    return kbs
+
+
 def calc(kbs, t=1):
     """Entrypoint"""
     n = var_num(len(kbs) / 2)
+    kbs = adjust_kb(kbs, n)
+    print(kbs)
+    print('0.6 0.6 0.5505 0.5505 0.4 0.4 0.3 0.3 0.3483 0.3483 0.5 0.5'.split())
 
     """
     t = max(min(
@@ -75,6 +113,6 @@ def calc(kbs, t=1):
 
     p = MMP(Fx, x0,
             lb=lb, ub=ub, Aeq=Aeq, beq=beq, xtol=1e-6, ftol=1e-6)
-    r = p.solve('nsmm', iprint=1, maxIter=1e3, minIter=1e2)
+    r = p.solve('nsmm', iprint=-1, maxIter=1e3, minIter=1e2)
     print(r.xf, r.ff)
     return r.xf, -r.ff
