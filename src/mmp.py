@@ -74,8 +74,6 @@ def calc(kbs, t=1):
     """Entrypoint"""
     n = var_num(len(kbs) / 2)
     kbs = adjust_kb(kbs, n)
-    print(kbs)
-    print('0.6 0.6 0.5505 0.5505 0.4 0.4 0.3 0.3 0.3483 0.3483 0.5 0.5'.split())
 
     """
     t = max(min(
@@ -113,6 +111,5 @@ def calc(kbs, t=1):
 
     p = MMP(Fx, x0,
             lb=lb, ub=ub, Aeq=Aeq, beq=beq, xtol=1e-6, ftol=1e-6)
-    r = p.solve('nsmm', iprint=-1, maxIter=1e3, minIter=1e2)
-    print(r.xf, r.ff)
+    r = p.solve('nsmm', iprint=1, maxIter=1e3, minIter=1e2)
     return r.xf, -r.ff
