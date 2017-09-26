@@ -5,8 +5,8 @@
 """
 
 from functools import reduce
-from numpy import mat, ones
-from openopt.oo import MMP
+from numpy import mat, ones, inf
+from scipy.optimize import linprog
 
 
 def var_num(l):
@@ -51,6 +51,9 @@ def adjust_kb(kbs, n):
         reduce(lambda l, r: (1 - l) * (1 - r), i) ** (float(2) / len(i))
     )
 
+    def _fn2():
+        kbs[1] = kbs[0]
+
     def _fn3():
         if kbs[1][0] != kbs[1][1] or kbs[4][0] != kbs[4][1]:
             kbs[1] = [change(kbs[0][0], kbs[2][0])] * 2
@@ -66,50 +69,60 @@ def adjust_kb(kbs, n):
         if kbs[1][0] != kbs[1][1] or kbs[7][0] != kbs[7][1]:
             kbs[1] = [change(kbs[0][0], kbs[2][0])] * 2
             kbs[7] = [change(kbs[6][0], kbs[8][0])] * 2
-    [None, None, None, _fn3, _fn4, None, ][n]()
+
+    [None, None, _fn2, _fn3, _fn4, None, ][n]()
     return kbs
 
 
 def calc(kbs, t=1):
     """Entrypoint"""
     n = var_num(len(kbs) / 2)
-    kbs = adjust_kb(kbs, n)
 
     """
-    t = max(min(
-        t - ((k1 - 1)w1 + b1w2),
-        t - ((k2 - 1)w1 + b2w3),
-        t - ((k3 - 1)w2 + b3w3),
-        t - (k4w1 + (b4 - 1)w2),
-        t - (k5w1 + (b5 - 1)w3),
-        t - (k6w2 + (b6 - 1)w3),
-    )) = -min(max(-Fi))
+    c^T * x
+        z = -t + 0*wi
     """
-    Fx = []
-    fx = lambda kl, l, kr, r: lambda x: -(t - (kl * x[l] + kr * x[r]))
+    c = [-1] + [0] * n
+
+    """
+    A_ub * x <= b_ub
+        t + ((k1 - 1)w1 + b1w2) <= 1,
+        t + ((k2 - 1)w1 + b2w3) <= 1,
+        t + ((k3 - 1)w2 + b3w3) <= 1,
+        t + (k4w1 + (b4 - 1)w2) <= 1,
+        t + (k5w1 + (b5 - 1)w3) <= 1,
+        t + (k6w2 + (b6 - 1)w3) <= 1,
+    """
+    def _a(k, l, b, r):
+        a = [1] + [0] * n
+        a[l + 1] = k
+        a[r + 1] = b
+        return a
+    A_ub = []
     xi = gen_xi(n)
-    Fx += [fx(k - 1, xi.next(), b, xi.next()) for k, b in kbs[:len(kbs) / 2]]
+    A_ub += [_a(k - 1, xi.next(), b, xi.next()) for k, b in kbs[:len(kbs) / 2]]
     xi = gen_xi(n)
-    Fx += [fx(k, xi.next(), b - 1, xi.next()) for k, b in kbs[len(kbs) / 2:]]
+    A_ub += [_a(k, xi.next(), b - 1, xi.next()) for k, b in kbs[len(kbs) / 2:]]
+
+    b_ub = [[1,],] * len(kbs)
 
     """
-    0 <= wi <= 1
+    A_eq * x == b_eq
+        0*t + [1, ..., 1]*w = 1
     """
-    lb = [0] * n
-    ub = [1] * n
+    A_eq = [[0] + [1] * n]
+    b_eq = [1]
 
     """
-    [1, ..., 1]*w = 1
+    -inf < t < inf, 0 <= wi <= 1
     """
-    Aeq = mat(ones(n))
-    beq = 1
+    bounds = ((-inf, inf),) * (n + 1)
 
-    """
-    initial value
-    """
-    x0 = list(range(n))
-
-    p = MMP(Fx, x0,
-            lb=lb, ub=ub, Aeq=Aeq, beq=beq, xtol=1e-6, ftol=1e-6)
-    r = p.solve('nsmm', iprint=1, maxIter=1e3, minIter=1e2)
-    return r.xf, -r.ff
+    r = linprog(c, A_ub=A_ub, b_ub = b_ub, A_eq = A_eq, b_eq = b_eq, bounds = bounds)
+    # print(r)
+    print(A_ub)
+    print(r.fun, r.x)
+    # for k in A_ub:
+    #     print(reduce(lambda l, i: l + k[i] * r.x[i], range(n + 1), 0))
+    print('')
+    return r.x, -r.fun

@@ -5,3 +5,4 @@ Anaconda2/
 *.xlsx
 *.txt
 !requirements.txt
+Anaconda2
