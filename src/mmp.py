@@ -116,13 +116,12 @@ def calc(kbs, t=1):
     """
     -inf < t < inf, 0 <= wi <= 1
     """
-    bounds = ((-inf, inf),) * (n + 1)
+    bounds = [(-inf, inf),] + [(0, 1),] * n
 
     r = linprog(c, A_ub=A_ub, b_ub = b_ub, A_eq = A_eq, b_eq = b_eq, bounds = bounds)
-    # print(r)
-    print(A_ub)
-    print(r.fun, r.x)
-    # for k in A_ub:
-    #     print(reduce(lambda l, i: l + k[i] * r.x[i], range(n + 1), 0))
+    print(r)
     print('')
+    # if -r.fun < 1: # TODO 判断一致性
+    if False: # TODO 判断一致性
+        return calc(adjust_kb(kbs, n))
     return r.x, -r.fun
