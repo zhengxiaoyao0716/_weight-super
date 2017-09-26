@@ -51,6 +51,9 @@ def adjust_kb(kbs, n):
         reduce(lambda l, r: (1 - l) * (1 - r), i) ** (float(2) / len(i))
     )
 
+    def _fn2():
+        kbs[1] = kbs[0]
+
     def _fn3():
         if kbs[1][0] != kbs[1][1] or kbs[4][0] != kbs[4][1]:
             kbs[1] = [change(kbs[0][0], kbs[2][0])] * 2
@@ -66,7 +69,7 @@ def adjust_kb(kbs, n):
         if kbs[1][0] != kbs[1][1] or kbs[7][0] != kbs[7][1]:
             kbs[1] = [change(kbs[0][0], kbs[2][0])] * 2
             kbs[7] = [change(kbs[6][0], kbs[8][0])] * 2
-    [None, None, None, _fn3, _fn4, None, ][n]()
+    [None, None, _fn2, _fn3, _fn4, None, ][n]()
     return kbs
 
 
