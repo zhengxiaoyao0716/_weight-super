@@ -15,8 +15,8 @@ from data import read_data
 def main():
     """Entrypoint"""
     dataset = read_data('input.weight.txt')
-    tasks = [calc([(data[i], data[i + 1])
-                   for i in range(0, len(data), 2)]) for data in dataset]
+    tasks = [calc(data[0], [(data[i], data[i + 1])
+                   for i in range(1, len(data), 2)]) for data in dataset]
     width = max(len(x) for x, _ in tasks)
     collect = [pad(x, (0, width - len(x)), mode='constant', constant_values=nan)
                for x, _ in tasks]

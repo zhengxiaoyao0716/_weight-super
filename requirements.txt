@@ -1,3 +1,0 @@
-openopt
-FuncDesigner
-DerApproximator
