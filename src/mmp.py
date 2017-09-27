@@ -55,26 +55,26 @@ def adjust_kb(kbs, n):
         kbs[1] = kbs[0]
 
     def _fn3():
-        if kbs[1][0] != kbs[1][1] or kbs[4][0] != kbs[4][1]:
-            kbs[1] = [change(kbs[0][0], kbs[2][0])] * 2
-            kbs[4] = [change(kbs[3][0], kbs[5][0])] * 2
+        # if kbs[1][0] != kbs[1][1] or kbs[4][0] != kbs[4][1]:
+        kbs[1] = [change(kbs[0][0], kbs[2][0])] * 2
+        kbs[4] = [change(kbs[3][0], kbs[5][0])] * 2
 
     def _fn4():
-        if kbs[4][0] != kbs[4][1] or kbs[10][0] != kbs[10][1]:
-            kbs[4] = [change(kbs[3][0], kbs[5][0])] * 2
-            kbs[10] = [change(kbs[9][0], kbs[11][0])] * 2
-        if kbs[2][0] != kbs[2][1] or kbs[8][0] != kbs[8][1]:
-            kbs[2] = [change(kbs[0][0], kbs[3][0], kbs[4][0], kbs[5][0])] * 2
-            kbs[8] = [change(kbs[6][0], kbs[9][0], kbs[10][0], kbs[11][0])] * 2
-        if kbs[1][0] != kbs[1][1] or kbs[7][0] != kbs[7][1]:
-            kbs[1] = [change(kbs[0][0], kbs[2][0])] * 2
-            kbs[7] = [change(kbs[6][0], kbs[8][0])] * 2
+        # if kbs[4][0] != kbs[4][1] or kbs[10][0] != kbs[10][1]:
+        kbs[4] = [change(kbs[3][0], kbs[5][0])] * 2
+        kbs[10] = [change(kbs[9][0], kbs[11][0])] * 2
+        # if kbs[2][0] != kbs[2][1] or kbs[8][0] != kbs[8][1]:
+        kbs[2] = [change(kbs[0][0], kbs[3][0], kbs[4][0], kbs[5][0])] * 2
+        kbs[8] = [change(kbs[6][0], kbs[9][0], kbs[10][0], kbs[11][0])] * 2
+        # if kbs[1][0] != kbs[1][1] or kbs[7][0] != kbs[7][1]:
+        kbs[1] = [change(kbs[0][0], kbs[2][0])] * 2
+        kbs[7] = [change(kbs[6][0], kbs[8][0])] * 2
 
     [None, None, _fn2, _fn3, _fn4, None, ][n]()
     return kbs
 
 
-def calc(kbs, t=1):
+def calc(f, kbs):
     """Entrypoint"""
     n = var_num(len(kbs) / 2)
 
@@ -104,7 +104,7 @@ def calc(kbs, t=1):
     xi = gen_xi(n)
     A_ub += [_a(k, xi.next(), b - 1, xi.next()) for k, b in kbs[len(kbs) / 2:]]
 
-    b_ub = [[1,],] * len(kbs)
+    b_ub = [[1, ], ] * len(kbs)
 
     """
     A_eq * x == b_eq
@@ -116,12 +116,14 @@ def calc(kbs, t=1):
     """
     -inf < t < inf, 0 <= wi <= 1
     """
-    bounds = [(-inf, inf),] + [(0, 1),] * n
+    bounds = [(-inf, inf), ] + [(0, 1), ] * n
 
-    r = linprog(c, A_ub=A_ub, b_ub = b_ub, A_eq = A_eq, b_eq = b_eq, bounds = bounds)
-    print(r)
+    r = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=bounds)
     print('')
-    # if -r.fun < 1: # TODO 判断一致性
-    if False: # TODO 判断一致性
-        return calc(adjust_kb(kbs, n))
+    print(kbs)
+    print(r)
+    if -r.fun < f:
+        print('[CONTINUE]')
+        return calc(0, adjust_kb(kbs, n))
+    print('[SUCCESS]')
     return r.x, -r.fun
