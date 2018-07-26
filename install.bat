@@ -1,4 +1,5 @@
 @echo off
+cd /d %~dp0
 
 :setdir
 set /p dir=Anaconda2°²×°Î»ÖÃ£¨D:\Path\To\Anaconda2£©£º
